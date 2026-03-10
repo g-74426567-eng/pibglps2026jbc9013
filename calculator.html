@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keputusan Rasmi PIBG - SJKC Nan Hwa</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0b1120;
+            --panel-bg: #1e293b;
+            --border-glow: #38bdf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --missing: #f43f5e;
+            --gold: #fbbf24;
+            --silver: #cbd5e1;
+            --bronze: #b45309;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+            border-radius: 16px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--border-glow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.3;
+        }
+
+        .header h2 {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .last-updated {
+            margin-top: 15px;
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* BALLOT TRACKER MODULE */
+        .tracker-module { background: var(--panel-bg); border-radius: 16px; padding: 24px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .tracker-stats { display: flex; justify-content: space-between; margin-bottom: 15px; text-align: center; }
+        .stat-box { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1;}
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 8px;}
+        .stat-label span { display: block; font-size: 0.65rem; color: #64748b; letter-spacing: 0; margin-top: 2px;}
+        
+        .val-total { color: var(--text-main); }
+        .val-received { color: var(--border-glow); text-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        .val-missing { color: var(--missing); text-shadow: 0 0 15px rgba(244, 63, 94, 0.4); }
+        .val-spoilt { color: var(--warning); text-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+        
+        .tracker-bar-bg { background: #0f172a; height: 16px; border-radius: 8px; overflow: hidden; margin-top: 5px; border: 1px solid #334155; position: relative; }
+        .tracker-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 15px #38bdf8; position: relative;}
+        
+        .tracker-breakdown { font-size: 0.75rem; color: #64748b; margin-top: 12px; text-align: center; font-weight:600; font-family: 'JetBrains Mono', monospace;}
+
+        /* GRID FOR LEADERBOARDS */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            color: #fff;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+            padding-bottom: 12px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title span { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; }
+
+        .lb-row { display: flex; align-items: center; margin-bottom: 14px; position: relative; }
+        .lb-rank { width: 35px; font-weight: 800; color: var(--text-muted); font-size: 1rem; }
+        .lb-name { width: 120px; font-weight: 600; font-size: 0.95rem; line-height: 1.2; display: flex; flex-direction: column; }
+        .lb-name small { font-size: 0.65rem; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+        .lb-bar-bg { flex-grow: 1; background: #0f172a; height: 32px; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); }
+        .lb-bar-fill { height: 100%; background: #475569; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px 0 0 8px; }
+        .lb-votes { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; font-weight: 800; color: white; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); font-family: 'JetBrains Mono', monospace; }
+
+        /* Podium Colors */
+        .rank-1 .lb-bar-fill { background: linear-gradient(90deg, #ca8a04, var(--gold)); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+        .rank-1 .lb-rank { color: var(--gold); }
+        
+        .rank-2 .lb-bar-fill { background: linear-gradient(90deg, #64748b, var(--silver)); }
+        .rank-2 .lb-rank { color: var(--silver); }
+        
+        .rank-3 .lb-bar-fill { background: linear-gradient(90deg, #78350f, var(--bronze)); }
+        .rank-3 .lb-rank { color: var(--bronze); }
+
+        .winner .lb-bar-fill { background: linear-gradient(90deg, #059669, var(--success)); }
+        .winner .lb-rank { color: var(--success); }
+
+        /* HISTORY */
+        .history-list { display: grid; grid-template-columns: 1fr; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .history-item { background: #0f172a; border: 1px solid #334155; padding: 12px 15px; border-radius: 10px; }
+        .spoilt-item { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); }
+        
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed #334155; padding-bottom: 8px; }
+        .h-time { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #64748b; }
+        .h-id { font-size: 0.85rem; font-weight: bold; color: #e2e8f0; }
+        
+        .history-vote-badge { display: inline-block; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #e0f2fe; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; margin: 3px 4px 3px 0; font-family: 'JetBrains Mono', monospace; }
+
+        @media (min-width: 900px) {
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .history-panel { grid-column: span 2; }
+        }
+
+        @media (max-width: 600px) {
+            .stat-value { font-size: 1.8rem; }
+            .lb-name { width: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>Keputusan Rasmi Pemilihan PIBG</h1>
+            <h2>家教协会理事选举官方成绩 - SJKC Nan Hwa</h2>
+            <div class="last-updated" id="lastUpdated">Kemas Kini Terakhir / 最后更新: Memuatkan...</div>
+        </div>
+
+        <!-- TRACKER -->
+        <div class="tracker-module">
+            <div class="tracker-stats">
+                <div class="stat-box">
+                    <div class="stat-value val-received" id="valReceived">0</div>
+                    <div class="stat-label">Borang Diterima<span>已收表格 / Received</span></div>
+                </div>
+                <div class="stat-box" style="border-left: 1px solid #334155;">
+                    <div class="stat-value val-spoilt" id="valSpoilt">0</div>
+                    <div class="stat-label">Undi Rosak<span>废票 / Spoilt</span></div>
+                </div>
+                <div class="stat-box" style="border-left: 1px solid #334155; border-right: 1px solid #334155;">
+                    <div class="stat-value val-missing" id="valMissing">0</div>
+                    <div class="stat-label">Belum Diterima<span>未收表格 / Missing</span></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value val-total">165</div>
+                    <div class="stat-label">Jumlah Pemilih<span>总选民 / Total</span></div>
+                </div>
+            </div>
+            <div class="tracker-bar-bg">
+                <div class="tracker-bar-fill" id="trackerFill"></div>
+            </div>
+            <div class="tracker-breakdown">
+                Agihan Borang: T1:14 | T2:22 | T3:15 | T4:21 | T5:19 | T6:27 | PK/特:12 | Pra/幼:18 | Guru/师:17
+            </div>
+        </div>
+
+        <!-- LEADERBOARDS -->
+        <div class="results-grid">
+            <!-- BUKIT KANGKAR -->
+            <div class="panel">
+                <h3 class="panel-title">
+                    Zon Bukit Kangkar / 武吉港脚区
+                    <span>(8 Teratas Memenangi / 选8位)</span>
+                </h3>
+                <div id="leaderboardBK"></div>
+            </div>
+
+            <!-- BATU 10 -->
+            <div class="panel">
+                <h3 class="panel-title">
+                    Zon Batu 10 / 十支半区
+                    <span>(1 Teratas Memenangi / 选1位)</span>
+                </h3>
+                <div id="leaderboardB10"></div>
+            </div>
+
+            <!-- AUDIT LOG / RECENT -->
+            <div class="panel history-panel">
+                <h3 class="panel-title">
+                    Log Undian Terkini / 最新投票记录
+                    <span>(Borang yang telah disahkan / Verified Forms)</span>
+                </h3>
+                <div class="history-list" id="historyLog"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- DATABASE ---
+    const CANDIDATES = {
+        "10001": "郑玮柔", "10002": "杜家宝", "10003": "刘健川", "10004": "符诗光", "10005": "颜欣勇",
+        "10006": "颜文汉", "10007": "颜文发", "10008": "颜伟健", "10009": "吴祥义", "10010": "吴德宝",
+        "10011": "王盛辉", "10012": "洪进福", "10013": "杜振兴", "10014": "刘国顺", "10015": "刘煜彬",
+        "10016": "林承桐", "10017": "罗建彪", "10018": "郑美玲", "10019": "杜振渊", "10020": "陈书溢",
+        "10021": "陈慈达", "10022": "郭凯全", "10023": "张俊祥", "10024": "张义雄", "10025": "林金成",
+        "10026": "童伟胜", "10027": "吴家宝", "10028": "何祥瑞", "10029": "KHAIRIZAN", "10030": "邱建强",
+        "10031": "TAAMOTHARAN", "10032": "刘锦顺", "10033": "李俊龙", "10034": "廖桎辉", "10035": "莫文国",
+        "10036": "MAGESVARAN", "10037": "TAMILSELVI", "10038": "MOHD ISA", "10039": "张珍慧", "10040": "MUHAMMAD",
+        "10041": "黄德俊", "10042": "田汶发", "10043": "张传辉", "10044": "颜明强", "10045": "王先励",
+        "10046": "张随权", "10047": "李志荣", "10048": "林进和", "10049": "罗建鑫", "10050": "黄练凯",
+        "10051": "陈咏峻", "10052": "杜振胜", "10053": "SUBASTHARSAN", "10054": "吴劲康", "10055": "张绍辉",
+        "10056": "方优豪", "10057": "许富豪", "10058": "颜欣伟", "10059": "黄钲翔", "10060": "王朝进",
+        "10061": "陈贤宾", "10062": "张伟健", "10063": "SUJENTARAN", "10064": "叶璇豪", "10065": "许耀财",
+        "10066": "林铝何", "10067": "骆建宏", "10068": "莫禅贤", "10069": "MOHD JUNAIDI", "10070": "黄顺椁",
+        "10071": "KAHA FIRDAUS", "10072": "陈清源", "10073": "蔡建成", "10074": "ABDULLAH", "10075": "莫凯胜",
+        "10076": "潘正俊", "10077": "MUHAMMAD SAARI", "10078": "MOHD NOH", "10079": "AZMI", "10080": "P.SIVARAJ",
+        "10081": "MEOR MUHAMMAD", "10082": "颜俊业", "10083": "颜金剑", "10084": "郑智伟", "10085": "魏汶谦",
+        "10086": "王艾伦", "10087": "林永源", "10088": "方优仁", "10089": "陈志祥", "10090": "熊政辉",
+        "10091": "陈佳文", "10092": "方金龙",
+        "10093": "姚进雄", "10094": "陈素婷", "10095": "杜伟廉", "10096": "林国庆", "10097": "杜业水",
+        "10098": "沈建雄", "10099": "林安伟", "10100": "郑顺德"
+    };
+
+    const EXPECTED_BALLOTS = 165; 
+
+    // --- EMBEDDED DATA FROM LATEST JSON ---
+    // Update this array by pasting the "history" array from your latest JSON export whenever you update the site.
+    const submissionHistory =[
+        {"id":1773147873014,"ic":"630621015763","name":"THOR YAP SWEE","votes":["10010","10013","10017","10019","10035","10038","10061","10087","10097"],"time":"9:04:33 PM"},
+        {"id":1773147647836,"ic":"0","name":"林","votes":["10010","10017","10061","10035","10087","10013","10019","10005","10097"],"time":"9:00:47 PM","isSpoilt":true},
+        {"id":1773147307672,"ic":"830412015827","name":"CHUA KIAN SENG","votes":["10006","10017","10021","10023","10010","10070","10005","10020","10097"],"time":"8:55:07 PM"},
+        {"id":1773147258672,"ic":"930301016673","name":"GO JING KANG","votes":["10010","10005","10034","10058","10038","10078","10089","10030","10100"],"time":"8:54:18 PM"},
+        {"id":1773147105899,"ic":"810521015633","name":"GOH SIANG YE","votes":["10010","10015","10019","10017","10035","10021","10020","10052","10097"],"time":"8:51:45 PM"},
+        {"id":1773147074036,"ic":"850207016132","name":"TEE LIN POI","votes":["10017","10003","10033","10067","10010","10035","10055","10021","10097"],"time":"8:51:14 PM"},
+        {"id":1773147001460,"ic":"831024016371","name":"MOHD JUNAIDI BIN NORMAN","votes":["10001","10003","10009","10014","10002","10007","10008","10019","10069"],"time":"8:50:01 PM"},
+        {"id":1773146915563,"ic":"800516015824","name":"NG PEI PEI","votes":["10017","10010","10035","10008","10058","10061","10087","10019","10097"],"time":"8:48:35 PM"},
+        {"id":1773146880018,"ic":"791019015434","name":"TEY MEE LING","votes":["10017","10026","10035","10072","10055","10004","10016","10019","10097"],"time":"8:48:00 PM"},
+        {"id":1773146797530,"ic":"940724016519","name":"GAN XIN YONG","votes":["10010","10021","10026","10019","10033","10054","10062","10090","10097"],"time":"8:46:37 PM"},
+        {"id":1773146745451,"ic":"871020015415","name":"JONATHAN PONG YU JIN","votes":["10015","10045","10082","10089","10024","10068","10087","10092","10094"],"time":"8:45:45 PM"},
+        {"id":1773146703428,"ic":"850106015886","name":"HWANG KIM CHIE","votes":["10010","10013","10017","10019","10035","10058","10061","10087","10097"],"time":"8:45:03 PM"},
+        {"id":1773146665222,"ic":"830528015968","name":"LAU ENG PING","votes":["10005","10058","10061","10035","10010","10017","10034","10042","10097"],"time":"8:44:25 PM"},
+        {"id":1773146630986,"ic":"901205035396","name":"SITI AISYAH BINTI ARIFFIN","votes":["10013","10019","10087","10061","10058","10017","10010","10035","10097"],"time":"8:43:50 PM"},
+        {"id":1773146613436,"ic":"881211235102","name":"TZU LAY PING","votes":["10035","10017","10010","10092","10061","10028","10097"],"time":"8:43:33 PM"},
+        {"id":1773146554244,"ic":"691223015425","name":"LOH KIAN PIAW","votes":["10003","10005","10010","10015","10017","10021","10035","10068","10097"],"time":"8:42:34 PM"},
+        {"id":1773146507144,"ic":"840123015483","name":"YOONG CHEN HUEI","votes":["10002","10011","10012","10027","10028","10045","10055","10068","10093"],"time":"8:41:47 PM"},
+        {"id":1773146436293,"ic":"900417045209","name":"KOH FU HOW","votes":["10002","10056","10059","10087","10043","10058","10019","10033","10097"],"time":"8:40:36 PM"},
+        {"id":1773146401603,"ic":"830307015825","name":"TAN CHYR TAT","votes":["10003","10005","10009","10013","10017","10058","10035","10019","10099"],"time":"8:40:01 PM"},
+        {"id":1773146365178,"ic":"950413016000","name":"TEO LING HUI","votes":["10017","10002","10004","10062","10005","10058","10023","10089","10097"],"time":"8:39:25 PM"},
+        {"id":1773146324709,"ic":"771210015581","name":"LAU CHEN CHUAN","votes":["10090","10032","10026","10017","10035","10028","10019","10004","10095"],"time":"8:38:44 PM"},
+        {"id":1773146293355,"ic":"840105016175","name":"LIM ANG WEI","votes":["10003","10017","10025","10045","10010","10047","10027","10023","10095"],"time":"8:38:13 PM"},
+        {"id":1773146262416,"ic":"840325016564","name":"NG XUE HONG","votes":["10010","10013","10017","10019","10035","10058","10061","10087","10097"],"time":"8:37:42 PM"},
+        {"id":1773146234143,"ic":"661122015496","name":"ONG CHENG CHOW","votes":["10035","10010","10017","10061","10013","10087","10019","10058","10097"],"time":"8:37:14 PM"},
+        {"id":1773146195426,"ic":"830207015422","name":"CHIAM CHOP MEI","votes":["10010","10013","10017","10019","10035","10058","10087","10061","10097"],"time":"8:36:35 PM"},
+        {"id":1773146128483,"ic":"760908016515","name":"ZURAI ASYRAN BIN MAHBOB","votes":["10087","10035","10010","10061","10091","10013","10019","10056","10097"],"time":"8:35:28 PM"},
+        {"id":1773146087945,"ic":"741218045112","name":"MOK PINK YIN","votes":["10035","10010","10017","10061","10013","10087","10019","10058","10097"],"time":"8:34:47 PM"},
+        {"id":1773146051865,"ic":"890728085578","name":"PANG HAN HAN","votes":["10001","10037","10070","10078","10035","10039","10075","10082","10095"],"time":"8:34:11 PM"},
+        {"id":1773146019633,"ic":"890610065651","name":"SUJENTARAN A/L MASALAMANI","votes":["10017","10022","10031","10048","10073","10083","10051","10089","10096"],"time":"8:33:39 PM"},
+        {"id":1773145988481,"ic":"930616015923","name":"GAN XIN WEE","votes":["10002","10010","10019","10021","10026","10054","10049","10020","10097"],"time":"8:33:08 PM"},
+        {"id":1773145958669,"ic":"870920015416","name":"TAN PEI LING","votes":["10010","10017","10003","10023","10020","10021","10072","10092","10097"],"time":"8:32:38 PM"},
+        {"id":1773145921657,"ic":"951223045374","name":"ONG YI RONG","votes":["10010","10017","10035","10087","10013","10019","10061","10058","10097"],"time":"8:32:01 PM"},
+        {"id":1773145899487,"ic":"760126015825","name":"BOK BOON KOCK","votes":["10010","10017","10018","10039","10042","10068","10053","10033","10097"],"time":"8:31:39 PM"},
+        {"id":1773145868815,"ic":"850814015799","name":"TAN CHIA WEN","votes":["10087","10096"],"time":"8:31:08 PM"},
+        {"id":1773145841749,"ic":"950520045114","name":"GUNAVATHI A/P A SANKAR","votes":["10031","10053","10041","10078","10052","10010","10043","10090","10097"],"time":"8:30:41 PM"},
+        {"id":1773145795153,"ic":"730828015830","name":"TEO SOCK SIAN","votes":["10010","10017","10087","10019","10013","10035","10061","10058","10097"],"time":"8:29:55 PM"},
+        {"id":1773145763467,"ic":"880705105653","name":"MOHD ISA BIN YAAKOP","votes":["10008","10010","10015","10019","10025","10028","10006","10033","10002"],"time":"8:29:23 PM"},
+        {"id":1773145730030,"ic":"690704015501","name":"FOO TEE KUANG","votes":["10002","10005","10010","10017","10027","10034","10035","10044","10097"],"time":"8:28:50 PM"},
+        {"id":1773142903676,"ic":"780507015819","name":"KUA CHENG CHOON","votes":["10076","10010","10062","10064","10027","10009","10034","10051","10094"],"time":"7:41:43 PM"},
+        {"id":1773142865766,"ic":"820416015673","name":"TAN SIAN BIN","votes":["10021","10055","10090","10020","10002","10046","10089","10026","10097"],"time":"7:41:05 PM"},
+        {"id":1773142832375,"ic":"830619015947","name":"TOW CHIN HENG","votes":["10017","10010","10049","10035","10002","10075","10084","10092","10099"],"time":"7:40:32 PM"},
+        {"id":1773142786372,"ic":"831010016207","name":"TEO SHAW HUI","votes":["10017","10010","10097","10095","10003","10021","10070","10096"],"time":"7:39:46 PM"},
+        {"id":1773142742362,"ic":"861011236487","name":"GAN BOON HAN","votes":["10010","10017","10002","10045","10005","10035","10026","10055","10097"],"time":"7:39:02 PM"},
+        {"id":1773142697042,"ic":"891231235061","name":"NGOH TECK POH","votes":["10017","10002","10035","10013","10021","10010","10026","10058","10097"],"time":"7:38:17 PM"},
+        {"id":1773142659862,"ic":"810214015713","name":"TAN ZHEE SIANG","votes":["10010","10017","10021","10035","10008","10009","10023","10028","10097"],"time":"7:37:39 PM"},
+        {"id":1773142622894,"ic":"900508045538","name":"RAGASUTHA A/P PANNIRSELVAM","votes":["10053","10017","10087","10075","10063","10069","10048","10031","10097"],"time":"7:37:02 PM"},
+        {"id":1773142575628,"ic":"0","name":"GOH HUI LING","votes":["10025","10034","10026","10058","10017","10010","10005","10090","10099"],"time":"7:36:15 PM"},
+        {"id":1773142422920,"ic":"570523016234","name":"LAU SEW HE","votes":["10017","10026","10048","10076","10021","10035","10050","10075","10100"],"time":"7:33:42 PM"},
+        {"id":1773142339334,"ic":"920126015702","name":"NORAZREEN BINTI AZAHRI","votes":["10071","10074","10001","10016","10026","10081","10037","10047","10097"],"time":"7:32:19 PM"},
+        {"id":1773142262609,"ic":"730611015709","name":"GAN BOON HUAT","votes":["10017","10010","10035","10020","10097","10068","10076","10021","10099"],"time":"7:31:02 PM"},
+        {"id":1773137665572,"ic":"760821016563","name":"NG SOON KWOK","votes":["10003","10023","10052","10082","10005","10041","10058","10090","10095"],"time":"6:14:25 PM"},
+        {"id":1773137361651,"ic":"790903015705","name":"TOW CHIN SHENG","votes":["10001","10002","10013","10017","10018","10019","10039","10041","10097"],"time":"6:09:21 PM"},
+        {"id":1773137317592,"ic":"620227016187","name":"LAU KOCK SOON","votes":["10017","10035","10010","10003","10015","10042","10005","10006","10096"],"time":"6:08:37 PM"},
+        {"id":1773137276697,"ic":"860704235335","name":"ONG CHAO CHIN","votes":["10010","10017","10023","10035","10021","10047","10042","10033","10097"],"time":"6:07:56 PM"},
+        {"id":1773137236995,"ic":"910117085996","name":"CHOONG POOI YEEN","votes":["10035","10010","10055","10045","10017","10054","10027","10075","10097"],"time":"6:07:16 PM"},
+        {"id":1773137196232,"ic":"921011016726","name":"CHONG ZHI TONG","votes":["10010","10035","10017","10033","10044","10028","10072","10075","10097"],"time":"6:06:36 PM"},
+        {"id":1773137147450,"ic":"820406016189","name":"THOR WIL LIAM","votes":["10010","10013","10039","10064","10061","10062","10068","10090","10097"],"time":"6:05:47 PM"},
+        {"id":1773137109386,"ic":"820207016282","name":"TAN BEE LIAN","votes":["10005","10035","10070","10002","10017","10010","10049","10058","10097"],"time":"6:05:09 PM"},
+        {"id":1773137062008,"ic":"911024015571","name":"CHOO CHUAN HOOI","votes":["10010","10017","10002","10021","10035","10045","10011","10090","10097"],"time":"6:04:22 PM"},
+        {"id":1773136713035,"ic":"791224015783","name":"LOK KIEN HONG","votes":["10017","10035","10010","10041","10087","10021","10020","10032","10093"],"time":"5:58:33 PM"},
+        {"id":1773136626172,"ic":"801001015467","name":"LEE CHEE YONG","votes":["10017","10002","10035","10013","10021","10010","10026","10058","10097"],"time":"5:57:06 PM"},
+        {"id":1773136573211,"ic":"850507016601","name":"NG TECK CHIN","votes":["10026","10005","10058","10062","10041","10021","10061","10032","10097"],"time":"5:56:13 PM"},
+        {"id":1773136531144,"ic":"830627015525","name":"LIM CHEN HOO","votes":["10049","10085","10033","10001","10023","10070","10035","10055","10094"],"time":"5:55:31 PM"},
+        {"id":1773136487565,"ic":"740519016353","name":"LIM KIM SING","votes":["10024","10043","10089","10073","10032","10057","10021","10084","10100"],"time":"5:54:47 PM"},
+        {"id":1773136432626,"ic":"731120016963","name":"LAU YOKE PIN","votes":["10010","10013","10017","10019","10035","10058","10061","10087","10097"],"time":"5:53:52 PM"},
+        {"id":1773136226597,"ic":"910311045074","name":"FOO AI LIN","votes":["10011","10025","10047","10073","10017","10042","10084","10062","10099"],"time":"5:50:26 PM"},
+        {"id":1773136174065,"ic":"830810015507","name":"ANG CHIN HOCK","votes":["10007","10010","10017","10021","10035","10075","10090","10087","10097"],"time":"5:49:34 PM"},
+        {"id":1773130885092,"ic":"740724045460","name":"LUCY CHUA","votes":["10017","10010","10035","10087","10081","10062","10058","10098","10097"],"time":"4:21:25 PM"},
+        {"id":1773128782875,"ic":"881202235258","name":"SHARON KOH CHEW YONG","votes":["10010","10017","10013","10019","10035","10061","10062","10060","10097"],"time":"3:46:22 PM"},
+        {"id":1773128695143,"ic":"900818045242","name":"NUR SYAFIQAH BINTI AMARUDIN","votes":["10087","10091","10035","10013","10010","10019","10061","10058","10097"],"time":"3:44:55 PM"},
+        {"id":1773128604051,"ic":"831202016025","name":"TAN ENG CHUIN","votes":["10002","10027","10010","10035","10011","10042","10017","10061","10097"],"time":"3:43:24 PM"},
+        {"id":1773128477576,"ic":"851003016848","name":"SIA LEE CHEAN","votes":["10035","10002","10010","10057","10017","10048","10052","10042","10097"],"time":"3:41:17 PM"},
+        {"id":1773128341367,"ic":"921027016341","name":"TEO WEE KIAN","votes":["10017","10010","10002","10035","10003","10021","10004","10001","10097"],"time":"3:39:01 PM"},
+        {"id":1773127002085,"ic":"680205016009","name":"LIM CHING HO","votes":["10017","10004","10010","10035","10050","10055","10075","10085","10097"],"time":"3:16:42 PM"},
+        {"id":1773126665943,"ic":"840522015827","name":"YEO CHIN SIONG","votes":["10017","10019","10010","10035","10002","10003","10004","10032","10097"],"time":"3:11:05 PM"}
+    ];
+
+    function formatDateTime(timestamp) {
+        return new Date(timestamp).toLocaleString('ms-MY', {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    }
+
+    function renderDashboard() {
+        const received = submissionHistory.length;
+        
+        let spoiltCount = 0;
+        let counts = {};
+        let latestRecordTime = 0;
+        
+        // Calculate scores and stats
+        submissionHistory.forEach(record => { 
+            if (record.id > latestRecordTime) latestRecordTime = record.id;
+            
+            if (record.isSpoilt) {
+                spoiltCount++;
+            } else {
+                record.votes.forEach(voteId => { counts[voteId] = (counts[voteId] || 0) + 1; }); 
+            }
+        });
+
+        const missing = Math.max(0, EXPECTED_BALLOTS - received);
+        const percent = Math.min(100, (received / EXPECTED_BALLOTS) * 100);
+
+        // Update Tracker UI
+        document.getElementById('valReceived').innerText = received;
+        document.getElementById('valSpoilt').innerText = spoiltCount;
+        document.getElementById('valMissing').innerText = missing;
+        
+        if (latestRecordTime > 0) {
+            document.getElementById('lastUpdated').innerHTML = `Kemas Kini Terakhir / 最后更新: <br>${formatDateTime(latestRecordTime)}`;
+        }
+        
+        const trackerFill = document.getElementById('trackerFill');
+        // Small delay to allow CSS transition to trigger gracefully on load
+        setTimeout(() => {
+            trackerFill.style.width = percent + '%';
+            if (received >= EXPECTED_BALLOTS) {
+                trackerFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+                trackerFill.style.boxShadow = '0 0 15px var(--success)';
+                document.getElementById('valMissing').style.color = 'var(--text-muted)';
+            }
+        }, 100);
+
+        // Sort candidates
+        let bkArray =[], b10Array =[]; 
+        let bkMax = 0, b10Max = 0;
+
+        Object.keys(counts).forEach(id => {
+            let obj = { id: id, name: CANDIDATES[id], votes: counts[id] };
+            if (parseInt(id) <= 10092) {
+                bkArray.push(obj);
+                if (counts[id] > bkMax) bkMax = counts[id];
+            } else {
+                b10Array.push(obj);
+                if (counts[id] > b10Max) b10Max = counts[id];
+            }
+        });
+
+        bkArray.sort((a,b) => b.votes - a.votes); 
+        b10Array.sort((a,b) => b.votes - a.votes);
+
+        // Render Bukit Kangkar
+        let htmlBK = '';
+        if (bkArray.length === 0) {
+            htmlBK = `<div style="text-align:center; color:#475569; padding: 20px;">Menunggu Data... / 等待开票...</div>`;
+        } else {
+            bkArray.forEach((c, index) => {
+                let rankClass = '';
+                if (index === 0) rankClass = 'rank-1';
+                else if (index === 1) rankClass = 'rank-2';
+                else if (index === 2) rankClass = 'rank-3';
+                else if (index < 8) rankClass = 'winner';
+                
+                // Allow bar to animate in
+                htmlBK += `<div class="lb-row ${rankClass}">
+                    <div class="lb-rank">#${index+1}</div>
+                    <div class="lb-name">${c.name}<small>${c.id}</small></div>
+                    <div class="lb-bar-bg">
+                        <div class="lb-bar-fill" style="width: 0%;" data-target="${bkMax > 0 ? (c.votes / bkMax) * 100 : 0}%"></div>
+                        <div class="lb-votes">${c.votes}</div>
+                    </div>
+                </div>`;
+            });
+        }
+        document.getElementById('leaderboardBK').innerHTML = htmlBK;
+
+        // Render Batu 10
+        let htmlB10 = '';
+        if (b10Array.length === 0) {
+            htmlB10 = `<div style="text-align:center; color:#475569; padding: 20px;">Menunggu Data... / 等待开票...</div>`;
+        } else {
+            b10Array.forEach((c, index) => {
+                let rankClass = index === 0 ? 'rank-1' : '';
+                htmlB10 += `<div class="lb-row ${rankClass}">
+                    <div class="lb-rank">#${index+1}</div>
+                    <div class="lb-name">${c.name}<small>${c.id}</small></div>
+                    <div class="lb-bar-bg">
+                        <div class="lb-bar-fill" style="width: 0%;" data-target="${b10Max > 0 ? (c.votes / b10Max) * 100 : 0}%"></div>
+                        <div class="lb-votes">${c.votes}</div>
+                    </div>
+                </div>`;
+            });
+        }
+        document.getElementById('leaderboardB10').innerHTML = htmlB10;
+
+        // Animate progress bars
+        setTimeout(() => {
+            document.querySelectorAll('.lb-bar-fill').forEach(bar => {
+                bar.style.width = bar.getAttribute('data-target');
+            });
+        }, 100);
+
+        // Render Recent Audit Log
+        let histHtml = '';
+        submissionHistory.forEach(record => {
+            let namesStr = record.votes && record.votes.length > 0
+                ? record.votes.map(v => `<span class="history-vote-badge">${CANDIDATES[v] || '???'}</span>`).join('')
+                : `<span style="font-size: 0.8rem; color: #64748b; font-style: italic;">Tiada Undian / 空票</span>`;
+            
+            histHtml += `
+                <div class="history-item ${record.isSpoilt ? 'spoilt-item' : ''}">
+                    <div class="history-header">
+                        <span class="h-id">ID Borang: ${record.ic === "0" ? "Tanpa IC" : `****${record.ic.substring(record.ic.length-4)}`}</span>
+                        <span class="h-time">${record.time}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; line-height: 1.4;">
+                        ${record.isSpoilt ? '<span style="background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 5px; display: inline-block;">ROSAK / 废票</span><br>' : ''}
+                        <div style="${record.isSpoilt ? 'opacity: 0.4; filter: grayscale(1);' : ''}">${namesStr}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (submissionHistory.length === 0) {
+            histHtml = `<div style="text-align:center; color:#475569; padding: 20px;">Tiada Rekod / 暂无记录</div>`;
+        }
+        document.getElementById('historyLog').innerHTML = histHtml;
+    }
+
+    // Initialize Dashboard
+    window.onload = renderDashboard;
+</script>
+</body>
+</html>
