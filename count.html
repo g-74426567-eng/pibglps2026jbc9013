@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SJKC Nan Hwa PIBG - Pusat Kawalan Undian / 计票中心</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0b1120;
+            --panel-bg: #1e293b;
+            --border-glow: #38bdf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --missing: #f43f5e;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255,255,255,0.05);
+            height: calc(100vh - 40px);
+            box-sizing: border-box;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--border-glow);
+            border-bottom: 2px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .bilingual-sub {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: normal;
+            text-transform: none;
+            margin-top: 2px;
+        }
+
+        /* --- LEFT PANEL --- */
+        .entry-section { flex-grow: 1; overflow-y: auto; padding-right: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; line-height: 1.3; }
+        label span { color: #64748b; font-size: 0.75rem; font-weight: normal; }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            background: #0f172a; border: 2px solid #334155; color: #fff; padding: 12px;
+            font-size: 1.1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
+            box-sizing: border-box; transition: all 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--border-glow); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        input::placeholder { color: #475569; font-size: 0.9rem; }
+
+        .ic-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .zone-title { margin: 20px 0 10px 0; color: #fff; font-size: 1rem; font-weight: 800; background: #334155; padding: 8px 12px; border-radius: 6px; line-height: 1.4; }
+        .zone-title span { font-size: 0.8rem; color: #94a3b8; font-weight: normal; display: block; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+
+        .input-wrapper { position: relative; }
+        .candidate-name-preview { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; font-weight: bold; pointer-events: none; }
+        .found { color: var(--success); }
+        .not-found { color: var(--danger); }
+        .duplicate { color: var(--warning); }
+
+        .spoilt-checkbox-container {
+            margin-top: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px dashed rgba(239, 68, 68, 0.4);
+            padding: 12px 15px;
+            border-radius: 8px;
+        }
+        .spoilt-checkbox-container label {
+            display: flex; align-items: center; gap: 12px; color: var(--missing); font-size: 0.95rem; margin: 0; cursor: pointer; text-transform: none; line-height: 1.3;
+        }
+        .spoilt-checkbox-container input[type="checkbox"] {
+            width: 20px; height: 20px; cursor: pointer; accent-color: var(--danger); flex-shrink: 0; margin: 0;
+        }
+
+        /* KAWAII POP ANIMATION */
+        @keyframes floatKawaii {
+            0% { transform: translate(0, 10px) scale(0.5); opacity: 0; }
+            20% { transform: translate(0, -10px) scale(1.4) rotate(var(--rot)); opacity: 1; filter: drop-shadow(0 0 10px rgba(255,105,180,0.8)); }
+            100% { transform: translate(var(--dirX), -50px) scale(1) rotate(calc(var(--rot) * 2)); opacity: 0; }
+        }
+        .kawaii-pop { position: absolute; right: 90px; top: 10%; font-size: 2rem; pointer-events: none; z-index: 100; animation: floatKawaii 0.8s ease-out forwards; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border: none; padding: 16px; font-size: 1.1rem; font-weight: 800;
+            border-radius: 12px; cursor: pointer; width: 100%; margin-top: 15px; transition: transform 0.1s, box-shadow 0.1s; letter-spacing: 1px;
+            line-height: 1.3;
+        }
+        .btn-submit span { display: block; font-size: 0.85rem; font-weight: normal; opacity: 0.9; }
+        .btn-submit:hover { box-shadow: 0 0 25px rgba(37, 99, 235, 0.6); }
+        .btn-submit:active { transform: scale(0.98); }
+
+        .sync-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #334155; }
+        .btn-sync { background: #334155; color: #f8fafc; border: none; padding: 10px; font-size: 0.85rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s; line-height: 1.3;}
+        .btn-sync span { display:block; font-size:0.75rem; color:#94a3b8; font-weight:normal;}
+        .btn-sync:hover { background: #475569; }
+        #fileInput { display: none; }
+
+        /* --- RIGHT PANEL --- */
+        .right-layout { display: flex; flex-direction: column; height: 100%; gap: 15px; }
+        
+        /* BALLOT TRACKER MODULE */
+        .tracker-module { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; border: 1px solid #334155; }
+        .tracker-stats { display: flex; justify-content: space-between; margin-bottom: 10px; text-align: center; }
+        .stat-box { flex: 1; }
+        .stat-value { font-size: 2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; line-height: 1;}
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 5px;}
+        .stat-label span { display: block; font-size: 0.6rem; color: #64748b; letter-spacing: 0; }
+        .val-total { color: var(--text-main); }
+        .val-received { color: var(--border-glow); text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+        .val-missing { color: var(--missing); text-shadow: 0 0 10px rgba(244, 63, 94, 0.4); }
+        
+        .tracker-bar-bg { background: #1e293b; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; border: 1px solid #334155; }
+        .tracker-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px #38bdf8; }
+        .tracker-breakdown { font-size: 0.7rem; color: #64748b; margin-top: 8px; text-align: center; font-weight:600; font-family: 'JetBrains Mono', monospace;}
+
+        /* LEADERBOARD & HISTORY */
+        .leaderboard-container { flex: 2; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; }
+        .history-container { flex: 1; overflow-y: auto; background: #0f172a; border-radius: 12px; padding: 15px; border: 1px solid #334155; }
+
+        .lb-row { display: flex; align-items: center; margin-bottom: 12px; position: relative; }
+        .lb-rank { width: 30px; font-weight: bold; color: var(--text-muted); }
+        .lb-name { width: 100px; font-weight: 600; }
+        .lb-bar-bg { flex-grow: 1; background: #334155; height: 24px; border-radius: 12px; overflow: hidden; position: relative; }
+        .lb-bar-fill { height: 100%; background: var(--border-glow); width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .lb-votes { position: absolute; right: 10px; top: 2px; font-size: 0.85rem; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+
+        .lb-row.winner .lb-bar-fill { background: var(--success); }
+        .lb-row.winner .lb-rank { color: var(--success); }
+
+        .history-item { background: #1e293b; border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .spoilt-item { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.3); }
+        .history-details { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; width: 100%; }
+        .history-details strong { color: #fff; font-size: 0.95rem; }
+        
+        .history-vote-badge { display: inline-block; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #e0f2fe; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; margin: 3px 4px 3px 0; font-family: 'JetBrains Mono', monospace; }
+
+        .btn-action { padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.75rem; border: none; text-align: center; width: 85px; }
+        .btn-toggle { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .btn-toggle:hover { background: var(--warning); color: white; }
+        .btn-undo { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-undo:hover { background: var(--danger); color: white; }
+
+        @keyframes flashSuccess { 0% { box-shadow: inset 0 0 0 0 var(--success); } 50% { box-shadow: inset 0 0 50px 10px rgba(16, 185, 129, 0.5); } 100% { box-shadow: inset 0 0 0 0 var(--success); } }
+        .flash-success { animation: flashSuccess 0.5s ease-out; }
+
+        @media (max-width: 900px) { body { grid-template-columns: 1fr; overflow: auto; height: auto; } .panel { height: auto; min-height: 80vh; margin-bottom: 20px; } }
+    </style>
+</head>
+<body>
+
+    <!-- LEFT PANEL: DATA ENTRY -->
+    <div class="panel" id="entryPanel">
+        <h2>
+            <div>🗳️ KEMASUKAN DATA<span class="bilingual-sub">数据录入 / Data Entry</span></div>
+            <span id="soundToggle" style="cursor:pointer; font-size:1.2rem;" title="Buka/Tutup Bunyi">🔊</span>
+        </h2>
+        
+        <div class="entry-section">
+            <div class="ic-row">
+                <div class="form-group">
+                    <label>No. K/P Pengundi <span><br>投票人身份证 (Pilihan/选填)</span></label>
+                    <input type="text" id="voterIC" maxlength="12" placeholder="Cth: 830810015507" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Nama Pengundi <span><br>投票人姓名 (Pilihan/选填)</span></label>
+                    <input type="text" id="voterName" placeholder="Isi automatik / 自动填充..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="zone-title">
+                Zon Bukit Kangkar / 武吉港脚区
+                <span>Pilih 8 Teratas / 选8位 (Top 8)</span>
+            </div>
+            <div class="grid-inputs">
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+                <div class="input-wrapper"><input type="number" class="cand-input bk-input" maxlength="5" placeholder="100xx"><span class="candidate-name-preview"></span></div>
+            </div>
+
+            <div class="zone-title">
+                Zon Batu 10 / 十支半区
+                <span>Pilih 1 Teratas / 选1位 (Top 1)</span>
+            </div>
+            <div class="input-wrapper">
+                <input type="number" class="cand-input b10-input" maxlength="5" placeholder="100xx">
+                <span class="candidate-name-preview"></span>
+            </div>
+
+            <div class="spoilt-checkbox-container">
+                <label>
+                    <input type="checkbox" id="isSpoiltInput">
+                    <span>
+                        <strong>Tandakan sebagai Undi Rosak / 标记为废票</strong><br>
+                        <small style="color: #f87171;">(Kira borang tetapi abaikan undian / Count form but ignore votes)</small>
+                    </span>
+                </label>
+            </div>
+
+            <button class="btn-submit" id="btnSubmit">
+                HANTAR BORANG / 提交表单
+                <span>Tekan [ENTER]</span>
+            </button>
+
+            <!-- DEVICE SYNC BRIDGE -->
+            <div class="sync-controls">
+                <button class="btn-sync" onclick="exportData()">💾 SIMPAN / 导出<span>Save / Export Data</span></button>
+                <button class="btn-sync" onclick="document.getElementById('fileInput').click()">📂 MUAT NAIK / 导入<span>Load / Import Data</span></button>
+                <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL: LEADERBOARD & HISTORY -->
+    <div class="panel">
+        <div class="right-layout">
+            
+            <!-- BALLOT TRACKER -->
+            <div class="tracker-module">
+                <div class="tracker-stats">
+                    <div class="stat-box">
+                        <div class="stat-value val-received" id="valReceived">0</div>
+                        <div class="stat-label">Terima<span>已收 / In</span></div>
+                    </div>
+                    <div class="stat-box" style="border-left: 1px solid #334155;">
+                        <div class="stat-value" id="valSpoilt" style="color: var(--warning); text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);">0</div>
+                        <div class="stat-label">Rosak<span>废票 / Spoilt</span></div>
+                    </div>
+                    <div class="stat-box" style="border-left: 1px solid #334155; border-right: 1px solid #334155;">
+                        <div class="stat-value val-missing" id="valMissing">165</div>
+                        <div class="stat-label">Kurang<span>未收 / Miss</span></div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value val-total">165</div>
+                        <div class="stat-label">Jumlah<span>总数 / Total</span></div>
+                    </div>
+                </div>
+                <div class="tracker-bar-bg">
+                    <div class="tracker-bar-fill" id="trackerFill"></div>
+                </div>
+                <div class="tracker-breakdown">
+                    T1:14 | T2:22 | T3:15 | T4:21 | T5:19 | T6:27 | PK/特:12 | Pra/幼:18 | Guru/师:17
+                </div>
+            </div>
+
+            <!-- LEADERBOARDS -->
+            <div style="display: flex; flex-direction: column; flex: 2; overflow: hidden;">
+                <h2 style="font-size: 1.1rem; border:none; margin-bottom:5px;">
+                    <div>🏆 Keputusan Langsung<span class="bilingual-sub">实时计票榜 / Live Leaderboard</span></div>
+                </h2>
+                <div class="leaderboard-container" id="leaderboard"></div>
+            </div>
+
+            <!-- HISTORY -->
+            <div style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <h2 style="font-size: 1.1rem; border: none; margin-bottom:5px;">
+                    <div>🔄 Rekod Terkini<span class="bilingual-sub">最新记录 / Recent Submissions</span></div>
+                </h2>
+                <div class="history-container" id="historyLog"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- DATABASE ---
+    const CANDIDATES = {
+        "10001": "郑玮柔", "10002": "杜家宝", "10003": "刘健川", "10004": "符诗光", "10005": "颜欣勇",
+        "10006": "颜文汉", "10007": "颜文发", "10008": "颜伟健", "10009": "吴祥义", "10010": "吴德宝",
+        "10011": "王盛辉", "10012": "洪进福", "10013": "杜振兴", "10014": "刘国顺", "10015": "刘煜彬",
+        "10016": "林承桐", "10017": "罗建彪", "10018": "郑美玲", "10019": "杜振渊", "10020": "陈书溢",
+        "10021": "陈慈达", "10022": "郭凯全", "10023": "张俊祥", "10024": "张义雄", "10025": "林金成",
+        "10026": "童伟胜", "10027": "吴家宝", "10028": "何祥瑞", "10029": "KHAIRIZAN", "10030": "邱建强",
+        "10031": "TAAMOTHARAN", "10032": "刘锦顺", "10033": "李俊龙", "10034": "廖桎辉", "10035": "莫文国",
+        "10036": "MAGESVARAN", "10037": "TAMILSELVI", "10038": "MOHD ISA", "10039": "张珍慧", "10040": "MUHAMMAD",
+        "10041": "黄德俊", "10042": "田汶发", "10043": "张传辉", "10044": "颜明强", "10045": "王先励",
+        "10046": "张随权", "10047": "李志荣", "10048": "林进和", "10049": "罗建鑫", "10050": "黄练凯",
+        "10051": "陈咏峻", "10052": "杜振胜", "10053": "SUBASTHARSAN", "10054": "吴劲康", "10055": "张绍辉",
+        "10056": "方优豪", "10057": "许富豪", "10058": "颜欣伟", "10059": "黄钲翔", "10060": "王朝进",
+        "10061": "陈贤宾", "10062": "张伟健", "10063": "SUJENTARAN", "10064": "叶璇豪", "10065": "许耀财",
+        "10066": "林铝何", "10067": "骆建宏", "10068": "莫禅贤", "10069": "MOHD JUNAIDI", "10070": "黄顺椁",
+        "10071": "KAHA FIRDAUS", "10072": "陈清源", "10073": "蔡建成", "10074": "ABDULLAH", "10075": "莫凯胜",
+        "10076": "潘正俊", "10077": "MUHAMMAD SAARI", "10078": "MOHD NOH", "10079": "AZMI", "10080": "P.SIVARAJ",
+        "10081": "MEOR MUHAMMAD", "10082": "颜俊业", "10083": "颜金剑", "10084": "郑智伟", "10085": "魏汶谦",
+        "10086": "王艾伦", "10087": "林永源", "10088": "方优仁", "10089": "陈志祥", "10090": "熊政辉",
+        "10091": "陈佳文", "10092": "方金龙",
+        "10093": "姚进雄", "10094": "陈素婷", "10095": "杜伟廉", "10096": "林国庆", "10097": "杜业水",
+        "10098": "沈建雄", "10099": "林安伟", "10100": "郑顺德"
+    };
+
+    const EXPECTED_BALLOTS = 14 + 22 + 15 + 21 + 19 + 27 + 12 + 18 + 17; // 165 Total
+
+    // --- STATE & AUTO-LOAD ---
+    let submissionHistory =[];
+    let soundEnabled = true;
+    
+    try {
+        const savedData = localStorage.getItem('sjkc_tally_data');
+        if (savedData) submissionHistory = JSON.parse(savedData);
+    } catch(e) { console.error("Could not load auto-save", e); }
+
+    // --- DATA BRIDGE ---
+    window.exportData = function() {
+        const learnedICs = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.startsWith('voter_')) learnedICs[key] = localStorage.getItem(key);
+        }
+        const payload = JSON.stringify({ timestamp: new Date().toISOString(), history: submissionHistory, icMemory: learnedICs });
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SJKC_Tally_Sync_${new Date().getTime()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    window.importData = function(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.history) {
+                    if(submissionHistory.length > 0 && !confirm("Amaran: Data semasa akan dipadam. Teruskan?\n警告：导入将覆盖当前屏幕数据。是否继续？")) return;
+                    submissionHistory = data.history; saveState();
+                    if (data.icMemory) Object.keys(data.icMemory).forEach(k => localStorage.setItem(k, data.icMemory[k]));
+                    updateDashboard(); alert("✅ Data berjaya disegerakkan!\n数据同步成功！");
+                }
+            } catch(err) { alert("❌ Format fail tidak sah.\n文件格式无效。"); }
+            event.target.value = ''; 
+        };
+        reader.readAsText(file);
+    };
+
+    function saveState() { localStorage.setItem('sjkc_tally_data', JSON.stringify(submissionHistory)); }
+
+    // --- AUDIO SYSTEM ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+    function playTone(freq, type, duration, vol=0.1) {
+        if (!soundEnabled) return; initAudio();
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        blip: () => playTone(800, 'sine', 0.1, 0.05),
+        kawaiiPing: () => { 
+            playTone(880, 'sine', 0.1, 0.06); 
+            setTimeout(() => playTone(1108.73, 'sine', 0.1, 0.06), 80); 
+            setTimeout(() => playTone(1318.51, 'sine', 0.2, 0.08), 160); 
+        },
+        error: () => { playTone(150, 'sawtooth', 0.3, 0.1); playTone(100, 'square', 0.3, 0.1); },
+        success: () => { 
+            playTone(440, 'sine', 0.1); setTimeout(()=>playTone(554, 'sine', 0.1), 100); 
+            setTimeout(()=>playTone(659, 'sine', 0.3), 200); setTimeout(()=>playTone(880, 'sine', 0.4), 300); 
+        },
+        undo: () => { playTone(300, 'triangle', 0.2); setTimeout(()=>playTone(200, 'triangle', 0.3), 150); },
+        complete: () => {
+            playTone(523.25, 'sine', 0.2); setTimeout(()=>playTone(659.25, 'sine', 0.2), 150);
+            setTimeout(()=>playTone(783.99, 'sine', 0.2), 300); setTimeout(()=>playTone(1046.50, 'sine', 0.4), 450);
+        }
+    };
+
+    document.getElementById('soundToggle').addEventListener('click', function() { soundEnabled = !soundEnabled; this.innerText = soundEnabled ? '🔊' : '🔇'; });
+    document.body.addEventListener('touchstart', initAudio, { once: true });
+    document.body.addEventListener('click', initAudio, { once: true });
+
+    // --- KAWAII EMOJI POP ENGINE ---
+    function popKawaiiEmoji(wrapper) {
+        const emojis =['✨', '💖', '🌸', '🥳', '🍡', '🌟', '🎊', '🎉', '🥰', '😻', '🍭', '🎀', '⭐'];
+        const el = document.createElement('div');
+        el.className = 'kawaii-pop';
+        el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        
+        const dirX = (Math.random() * 40 - 20) + 'px';
+        const rot = (Math.random() * 60 - 30) + 'deg';
+        el.style.setProperty('--dirX', dirX);
+        el.style.setProperty('--rot', rot);
+        
+        wrapper.appendChild(el);
+        setTimeout(() => el.remove(), 800); 
+    }
+
+    // --- DOM & LOGIC ---
+    const voterIC = document.getElementById('voterIC');
+    const voterName = document.getElementById('voterName');
+    const candInputs = Array.from(document.querySelectorAll('.cand-input'));
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    voterIC.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, ''); e.target.value = val;
+        if (val.length >= 6) {
+            let savedName = localStorage.getItem('voter_' + val);
+            if (savedName) { voterName.value = savedName; voterName.style.borderColor = "var(--success)"; } 
+            else { voterName.style.borderColor = "#334155"; }
+        }
+    });
+
+    voterIC.addEventListener('keyup', (e) => { if(e.key === 'Enter') voterName.focus(); });
+    voterName.addEventListener('keyup', (e) => { if(e.key === 'Enter') candInputs[0].focus(); });
+
+    candInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            let val = e.target.value.slice(0, 5); e.target.value = val;
+            let preview = input.nextElementSibling;
+            let currentVals = candInputs.map(i => i.value).filter(v => v.length === 5);
+            let isDup = currentVals.filter(v => v === val).length > 1;
+
+            if (val.length === 5) {
+                if (CANDIDATES[val]) {
+                    if (isDup) { preview.textContent = "DUPLIKAT/重复!"; preview.className = "candidate-name-preview duplicate"; sfx.error(); } 
+                    else {
+                        if (input.dataset.locked !== val) {
+                            input.dataset.locked = val;
+                            preview.textContent = CANDIDATES[val]; 
+                            preview.className = "candidate-name-preview found"; 
+                            
+                            sfx.kawaiiPing(); 
+                            popKawaiiEmoji(input.parentElement);
+
+                            if (index < candInputs.length - 1) candInputs[index + 1].focus();
+                        }
+                    }
+                } else { preview.textContent = "ID TIDAK SAH/无效"; preview.className = "candidate-name-preview not-found"; sfx.error(); input.dataset.locked = ''; }
+            } else { 
+                preview.textContent = ""; 
+                input.dataset.locked = '';
+                if(val.length > 0) sfx.blip(); 
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && input.value === '' && index > 0) candInputs[index - 1].focus();
+            if (e.key === 'Enter') btnSubmit.click();
+        });
+    });
+
+    btnSubmit.addEventListener('click', () => {
+        let ic = voterIC.value; let vName = voterName.value;
+        let isSpoilt = document.getElementById('isSpoiltInput').checked;
+        let votes =[]; let hasError = false;
+
+        if (ic && vName) localStorage.setItem('voter_' + ic, vName);
+
+        candInputs.forEach(input => {
+            let val = input.value;
+            if (val.length > 0) {
+                if (val.length !== 5 || !CANDIDATES[val]) { 
+                    hasError = true; input.style.borderColor = "var(--danger)"; 
+                } else { 
+                    votes.push(val); input.style.borderColor = "#334155"; 
+                }
+            } else {
+                input.style.borderColor = "#334155";
+            }
+        });
+
+        if (!isSpoilt) {
+            if (hasError) { sfx.error(); alert("Sila betulkan ID yang tidak sah.\n提交前请修正无效编号。"); return; }
+            if (votes.length === 0) { sfx.error(); return; }
+            if (new Set(votes).size !== votes.length) { sfx.error(); alert("Undian duplikat dikesan!\n发现重复投票！"); return; }
+        } else {
+            votes = [...new Set(votes)]; // Unique votes only if they managed to enter some
+        }
+
+        let record = { 
+            id: Date.now(), 
+            ic: ic || "Tiada/无", 
+            name: vName || "Tanpa Nama/匿名", 
+            votes: votes, 
+            time: new Date().toLocaleTimeString(),
+            isSpoilt: isSpoilt
+        };
+
+        submissionHistory.unshift(record);
+        saveState();
+        sfx.success();
+        
+        if (submissionHistory.length === EXPECTED_BALLOTS) sfx.complete();
+
+        document.getElementById('entryPanel').classList.add('flash-success');
+        setTimeout(() => document.getElementById('entryPanel').classList.remove('flash-success'), 500);
+
+        // Reset Inputs
+        voterIC.value = ''; voterName.value = ''; voterName.style.borderColor = "#334155";
+        document.getElementById('isSpoiltInput').checked = false;
+        candInputs.forEach(i => { i.value = ''; i.nextElementSibling.textContent = ''; i.dataset.locked = ''; });
+        voterIC.focus();
+
+        updateDashboard();
+    });
+
+    function updateDashboard() {
+        const received = submissionHistory.length;
+        const missing = Math.max(0, EXPECTED_BALLOTS - received);
+        const percent = Math.min(100, (received / EXPECTED_BALLOTS) * 100);
+
+        let spoiltCount = 0;
+        let counts = {};
+        
+        submissionHistory.forEach(record => { 
+            if (record.isSpoilt) {
+                spoiltCount++;
+            } else {
+                record.votes.forEach(voteId => { counts[voteId] = (counts[voteId] || 0) + 1; }); 
+            }
+        });
+
+        document.getElementById('valReceived').innerText = received;
+        document.getElementById('valSpoilt').innerText = spoiltCount;
+        document.getElementById('valMissing').innerText = missing;
+        
+        const trackerFill = document.getElementById('trackerFill');
+        trackerFill.style.width = percent + '%';
+
+        if (received >= EXPECTED_BALLOTS) {
+            trackerFill.style.background = 'var(--success)';
+            trackerFill.style.boxShadow = '0 0 15px var(--success)';
+            document.getElementById('valMissing').style.color = 'var(--text-muted)';
+        } else {
+            trackerFill.style.background = 'linear-gradient(90deg, #38bdf8, #818cf8)';
+            trackerFill.style.boxShadow = '0 0 10px #38bdf8';
+            document.getElementById('valMissing').style.color = 'var(--missing)';
+        }
+
+        let bkArray =[], b10Array =[]; let maxVotes = 0;
+        Object.keys(counts).forEach(id => {
+            let obj = { id: id, name: CANDIDATES[id], votes: counts[id] };
+            if (counts[id] > maxVotes) maxVotes = counts[id];
+            if (parseInt(id) <= 10092) bkArray.push(obj); else b10Array.push(obj);
+        });
+
+        bkArray.sort((a,b) => b.votes - a.votes); b10Array.sort((a,b) => b.votes - a.votes);
+
+        let html = `<div style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 5px;">ZON BUKIT KANGKAR (8 Menang / 前8位)</div>`;
+        bkArray.forEach((c, index) => {
+            let pct = maxVotes > 0 ? (c.votes / maxVotes) * 100 : 0;
+            html += `<div class="lb-row ${index < 8 ? 'winner' : ''}"><div class="lb-rank">#${index+1}</div><div class="lb-name">${c.name}</div><div class="lb-bar-bg"><div class="lb-bar-fill" style="width: ${pct}%;"></div><div class="lb-votes">${c.votes}</div></div></div>`;
+        });
+
+        html += `<div style="color: var(--text-muted); font-size: 0.8rem; margin: 20px 0 5px 0;">ZON BATU 10 (1 Menang / 前1位)</div>`;
+        b10Array.forEach((c, index) => {
+            let pct = maxVotes > 0 ? (c.votes / maxVotes) * 100 : 0;
+            html += `<div class="lb-row ${index < 1 ? 'winner' : ''}"><div class="lb-rank">#${index+1}</div><div class="lb-name">${c.name}</div><div class="lb-bar-bg"><div class="lb-bar-fill" style="width: ${pct}%;"></div><div class="lb-votes">${c.votes}</div></div></div>`;
+        });
+
+        if(Object.keys(counts).length === 0) html = `<div style="text-align:center; color:#475569; padding: 20px;">Menunggu Data...<br>等待录入...</div>`;
+        document.getElementById('leaderboard').innerHTML = html;
+
+        let histHtml = '';
+        submissionHistory.forEach(record => {
+            let namesStr = record.votes && record.votes.length > 0
+                ? record.votes.map(v => `<span class="history-vote-badge">${v} ${CANDIDATES[v] || '???'}</span>`).join('')
+                : `<span style="font-size: 0.8rem; color: #64748b; font-style: italic;">Tiada Undian / 空票</span>`;
+            
+            histHtml += `
+                <div class="history-item ${record.isSpoilt ? 'spoilt-item' : ''}">
+                    <div class="history-details">
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 4px;">
+                            <strong>${record.name}</strong> 
+                            <span style="font-size: 0.8rem; color: #94a3b8;">(${record.ic === "0" ? "IC Tidak Sah" : record.ic})</span>
+                            ${record.isSpoilt ? '<span style="background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px;">ROSAK / 废票</span>' : ''}
+                        </div>
+                        <div style="margin-top: 2px; ${record.isSpoilt ? 'opacity: 0.5; filter: grayscale(1); text-decoration: line-through;' : ''}">${namesStr}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; margin-left: 10px;">
+                        <button class="btn-action btn-toggle" onclick="toggleSpoilt(${record.id})">${record.isSpoilt ? 'SAHKAN ✅' : 'ROSAK ❌'}</button>
+                        <button class="btn-action btn-undo" onclick="undoRecord(${record.id})">BATAL 🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('historyLog').innerHTML = histHtml;
+    }
+
+    // Toggle Spoilt/Valid state
+    window.toggleSpoilt = function(id) {
+        let record = submissionHistory.find(r => r.id === id);
+        if(record) {
+            record.isSpoilt = !record.isSpoilt;
+            saveState(); sfx.blip(); updateDashboard();
+        }
+    };
+
+    window.undoRecord = function(id) {
+        if(confirm("Padam rekod ini?\n确定要撤销此记录吗？")) {
+            submissionHistory = submissionHistory.filter(r => r.id !== id);
+            saveState(); sfx.undo(); updateDashboard();
+        }
+    };
+
+    updateDashboard();
+</script>
+</body>
+</html>
